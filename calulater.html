@@ -4,61 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>体积计算器 - 带历史记录功能</title>
-    <script src="./tailwindcss.css"></script>
+    <script src="./css/tailwindcss.css"></script>
+    <script src="./js/css.js"></script>
     <link href="./icon/fontawesome-free-7.0.0-web/css/all.min.css" rel="stylesheet">
     
     <!-- 配置Tailwind自定义主题 -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981',
-                        danger: '#EF4444',
-                        neutral: '#64748B',
-                        light: '#F8FAFC',
-                        dark: '#1E293B'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .input-focus {
-                @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
-            }
-            .card-shadow {
-                @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
-            }
-            .history-item-hover {
-                @apply hover:bg-slate-50 transition-colors duration-200;
-            }
-        }
-    </style>
-
-    <style>
-        .history-container {
-            /* 限制容器高度，刚好容纳15条记录 */
-            height: 450px; /* 假设每条记录约30px高 */
-            overflow-y: auto; /* 垂直滚动 */
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        
-        .history-item {
-            padding: 5px 0;
-            border-bottom: 1px dashed #eee;
-        }
-    </style>
 </head>
 <body class="bg-gradient-to-br from-light to-slate-100 min-h-screen font-sans text-dark">
     <div class="container mx-auto px-4 py-8 md:py-16 max-w-5xl">
@@ -340,6 +290,6 @@
             <p>体积计算器 &copy; 2023 - 带历史记录和求和功能</p>
         </footer>
     </div>
-    <script src="./logic.js"></script>
+    <script src="./js/logic.js "></script>
 </body>
 </html>
