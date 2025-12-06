@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>体积计算器 - 带历史记录功能</title>
+    <script src="./tailwindcss.css"></script>
+    <link href="./icon/fontawesome-free-7.0.0-web/css/all.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义主题 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        neutral: '#64748B',
+                        light: '#F8FAFC',
+                        dark: '#1E293B'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .input-focus {
+                @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+            }
+            .card-shadow {
+                @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+            }
+            .history-item-hover {
+                @apply hover:bg-slate-50 transition-colors duration-200;
+            }
+        }
+    </style>
+
+    <style>
+        .history-container {
+            /* 限制容器高度，刚好容纳15条记录 */
+            height: 450px; /* 假设每条记录约30px高 */
+            overflow-y: auto; /* 垂直滚动 */
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        
+        .history-item {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-light to-slate-100 min-h-screen font-sans text-dark">
+    <div class="container mx-auto px-4 py-8 md:py-16 max-w-5xl">
+        <!-- 页面标题 -->
+        <header class="text-center mb-10 md:mb-16">
+            <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-dark mb-3 tracking-tight">
+                体积计算器
+            </h1>
+            <p class="text-neutral text-lg md:text-xl max-w-2xl mx-auto">
+                输入长宽高（厘米）和数量，快速计算总体积（立方米）
+            </p>
+        </header>
+        
+        <!-- 主内容区 -->
+        <main class="grid md:grid-cols-12 gap-8">
+            <!-- 输入表单表单卡片 -->
+            <div class="md:col-span-7 bg-white rounded-xl p-6 md:p-8 card-shadow">
+                <h2 class="text-xl md:text-2xl font-semibold mb-6 flex items-center">
+                    <i class="fa fa-calculator text-primary mr-3"></i>
+                    输入参数
+                </h2>
+                
+                <form id="volumeForm" class="space-y-5">
+                    <!-- 长度输入 -->
+                    <div class="form-group">
+                        <label for="length" class="block text-neutral font-medium mb-2">
+                            长度 (cm)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral">
+                                <i class="fa fa-arrows-h"></i>
+                            </span>
+                            <input 
+                                type="number" 
+                                id="length" 
+                                name="length" 
+                                step="0.01" 
+                                min="0" 
+                                required
+                                class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 input-focus transition-all duration-200"
+                                placeholder="请输入长度"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 宽度输入 -->
+                    <div class="form-group">
+                        <label for="width" class="block text-neutral font-medium mb-2">
+                            宽度 (cm)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral">
+                                <i class="fa fa-arrows-v"></i>
+                            </span>
+                            <input 
+                                type="number" 
+                                id="width" 
+                                name="width" 
+                                step="0.01" 
+                                min="0" 
+                                required
+                                class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 input-focus transition-all duration-200"
+                                placeholder="请输入宽度"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 高度输入 -->
+                    <div class="form-group">
+                        <label for="height" class="block text-neutral font-medium mb-2">
+                            高度 (cm)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral">
+                                <i class="fa fa-arrows-alt"></i>
+                            </span>
+                            <input 
+                                type="number" 
+                                id="height" 
+                                name="height" 
+                                step="0.01" 
+                                min="0" 
+                                required
+                                class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 input-focus transition-all duration-200"
+                                placeholder="请输入高度"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 数量输入 -->
+                    <div class="form-group">
+                        <label for="quantity" class="block text-neutral font-medium mb-2">
+                            数量
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral">
+                                <i class="fa fa-cubes"></i>
+                            </span>
+                            <input 
+                                type="number" 
+                                id="quantity" 
+                                name="quantity" 
+                                step="1" 
+                                min="1" 
+                                value="1"
+                                required
+                                class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 input-focus transition-all duration-200"
+                                placeholder="请输入数量"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 计算按钮 -->
+                    <div class="pt-2">
+                        <button 
+                            type="button" 
+                            id="calculateBtn"
+                            class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+                        >
+                            <i class="fa fa-calculator mr-2"></i>
+                            计算总体积
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 结果显示卡片 -->
+            <div class="md:col-span-5 bg-white rounded-xl p-6 md:p-8 card-shadow flex flex-col">
+                <h2 class="text-xl md:text-2xl font-semibold mb-6 flex items-center">
+                    <i class="fa fa-bar-chart text-secondary mr-3"></i>
+                    计算结果
+                </h2>
+                
+                <div id="resultContainer" class="flex-1 flex flex-col justify-center items-center text-center">
+                    <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                        <i class="fa fa-cube text-4xl md:text-5xl text-primary"></i>
+                    </div>
+                    
+                    <div id="emptyState" class="text-neutral">
+                        <p class="text-lg mb-2">请输入参数并计算</p>
+                        <p class="text-sm opacity-75">结果将显示在这里</p>
+                    </div>
+                    
+                    <div id="resultState" class="hidden w-full">
+                        <div class="mb-4">
+                            <p class="text-neutral text-sm mb-1">单个体积</p>
+                            <p id="singleVolume" class="text-2xl font-semibold text-dark"></p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <p class="text-neutral text-sm mb-1">总体积</p>
+                            <p id="totalVolume" class="text-3xl md:text-4xl font-bold text-secondary"></p>
+                        </div>
+                        
+                        <div class="w-full h-px bg-slate-200 my-4"></div>
+                        
+                        <div class="text-sm text-neutral">
+                            <p>计算公式:</p>
+                            <p class="mt-1">长 × 宽 × 高 ÷ 1,000,000 × 数量</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-slate-100">
+                    <button 
+                        id="resetBtn" 
+                        class="w-full text-neutral hover:text-dark border border-slate-300 hover:border-slate-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                        disabled
+                    >
+                        <i class="fa fa-refresh mr-2"></i>
+                        重置输入
+                    </button>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 历史记录区域 -->
+        <section class="mt-10 bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                <h2 class="text-xl md:text-2xl font-semibold flex items-center">
+                    <i class="fa fa-history text-primary mr-3"></i>
+                    历史计算记录
+                </h2>
+                
+                <div class="flex flex-wrap gap-3 mt-4 md:mt-0">
+                    <button id="selectAllBtn" class="flex items-center text-sm md:text-base text-primary hover:text-primary/80 border border-primary/30 hover:border-primary/50 font-medium py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-check-square mr-2"></i>
+                        全选
+                    </button>
+                    <button id="sumSelectedBtn" class="flex items-center text-sm md:text-base bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-plus-circle mr-2"></i>
+                        求和选中项
+                    </button>
+                    <button id="deleteSelectedBtn" class="flex items-center text-sm md:text-base bg-danger hover:bg-danger/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-trash mr-2"></i>
+                        删除选中项
+                    </button>
+                    <button id="clearHistoryBtn" class="flex items-center text-sm md:text-base text-neutral hover:text-red-500 border border-slate-300 hover:border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-trash mr-2"></i>
+                        清空记录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 求和结果显示 -->
+            <div id="sumResult" class="hidden mb-6 p-4 bg-secondary/10 rounded-lg border border-secondary/20">
+                <div class="flex items-center">
+                    <i class="fa fa-calculator text-secondary mr-2"></i>
+                    <h3 class="font-medium">选中项总和</h3>
+                </div>
+                <p id="sumValue" class="text-xl font-bold text-secondary mt-1"></p>
+            </div>
+            
+            <!-- 历史记录列表 -->
+            <div id="historyContainer" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 bg-slate-50 text-left text-xs font-medium text-neutral uppercase tracking-wider rounded-tl-lg">
+                                序号
+                            </th>
+                            <th class="px-4 py-3 bg-slate-50 text-left text-xs font-medium text-neutral uppercase tracking-wider rounded-tl-lg">
+                                <input type="checkbox" id="selectAllCheckbox" class="h-4 w-4 text-primary border-slate-300 rounded focus:ring-primary">
+                            </th>
+                            <th class="px-4 py-3 bg-slate-50 text-left text-xs font-medium text-neutral uppercase tracking-wider">
+                                长×宽×高 (cm)
+                            </th>
+                            <th class="px-4 py-3 bg-slate-50 text-left text-xs font-medium text-neutral uppercase tracking-wider">
+                                数量
+                            </th>
+                            <th class="px-4 py-3 bg-slate-50 text-left text-xs font-medium text-neutral uppercase tracking-wider">
+                                总体积 (m³)
+                            </th>
+                            <th class="px-4 py-3 bg-slate-50 text-left text-xs font-medium text-neutral uppercase tracking-wider rounded-tr-lg">
+                                时间
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList" class="bg-white divide-y divide-slate-200">
+                        <!-- 历史记录将通过JavaScript动态添加 -->
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-neutral">
+                                暂无计算记录
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页控制 -->
+            <div id="paginationControls" class="flex justify-between items-center mt-4 hidden">
+                <div class="text-sm text-neutral">
+                    显示 <span id="currentRange">0-0</span> 条，共 <span id="totalRecords">0</span> 条记录
+                </div>
+                <div class="flex gap-2">
+                    <button id="prevPage" class="px-4 py-2 border border-slate-300 rounded-lg text-neutral hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-chevron-left mr-1"></i> 上一页
+                    </button>
+                    <button id="nextPage" class="px-4 py-2 border border-slate-300 rounded-lg text-neutral hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        下一页 <i class="fa fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 说明信息 -->
+        <div class="mt-10 bg-white/80 backdrop-blur-sm rounded-xl p-5 card-shadow">
+            <h3 class="font-medium text-dark mb-2 flex items-center">
+                <i class="fa fa-info-circle text-primary mr-2"></i>
+                单位转换说明
+            </h3>
+            <p class="text-neutral text-sm">
+                1立方米 = 1,000,000立方厘米（因为1米 = 100厘米，1立方米 = 100×100×100 = 1,000,000立方厘米）
+            </p>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer class="mt-12 text-center text-neutral text-sm opacity-70">
+            <p>体积计算器 &copy; 2023 - 带历史记录和求和功能</p>
+        </footer>
+    </div>
+    <script src="./logic.js"></script>
+</body>
+</html>
